@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="简单几何图形绘制系统/简单几何图形绘制系统.vcxproj" Id="dc8fb629-32f5-48c0-8ee7-d7bc26e4a3f7" />
+</Solution>
