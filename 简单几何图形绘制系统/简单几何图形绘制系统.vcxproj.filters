@@ -21,12 +21,18 @@
     <ClInclude Include="Reader.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Library.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Book.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Reader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Library.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
