@@ -1,14 +1,12 @@
-#include<string>
-#include<Book.h>
-#include<Reader.h>
-#include<vector>
-#define LIBRARY_H
-#ifndef LIBRARY_H
-
-#endif // !LIBRARY_H
-
-
-class Reader
-{
+#ifndef READER_H
+#define READER_H
+#include <string>
+#include <vector>
+class Reader {
+public:
+    std::string id, name;
+    std::vector<std::string> borrowedIsbns;
+    Reader();
+    Reader(std::string i, std::string n);
 };
-
+#endif
