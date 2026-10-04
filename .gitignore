@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# 本地归档（不属于项目源码，仅本机保留）
+归档_带菜单版本/
