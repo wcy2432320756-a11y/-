@@ -1,0 +1,75 @@
+@startuml
+' 图书馆借阅管理系统 —— 实验一（类与对象）+ 实验二（依赖关系）
+' 内容严格对应 Book.h/Book.cpp、User.h/User.cpp 的真实成员与方法
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 55
+
+class Book {
+  - m_title : string
+  - m_author : string
+  - m_publisher : string
+  - m_ISBN : string
+  - m_id : string
+  - m_price : double
+  - m_isBorrowed : bool
+  __
+  + Book()
+  + Book(title, author, publisher, ISBN, id, price, isBorrowed)
+  + getTitle() : string
+  + getAuthor() : string
+  + getPublisher() : string
+  + getISBN() : string
+  + getId() : string
+  + getPrice() : double
+  + getIsBorrowed() : bool
+  + setTitle(title) : void
+  + setAuthor(author) : void
+  + setPublisher(publisher) : void
+  + setISBN(ISBN) : void
+  + setId(id) : void
+  + setPrice(price) : void
+  + setIsBorrowed(isBorrowed) : void
+  + display() : void
+}
+
+class User {
+  - m_name : string
+  - m_id : string
+  - m_borrownum : int
+  - m_maxnum : int
+  - m_records[60] : BorrowRecord
+  __
+  + User()
+  + User(name, id, borrownum, maxnum)
+  + getName() : string
+  + getId() : string
+  + getBorrownum() : int
+  + getMaxnum() : int
+  + setName(name) : void
+  + setId(id) : void
+  + setBorrownum(borrownum) : void
+  + setMaxnum(maxnum) : void
+  + borrowBook(Book& book) : void
+  + returnBook(Book& book) : void
+  + displayRecords() : void
+  + display() : void
+}
+
+struct BorrowRecord {
+  + m_book : Book
+  __
+  + setBook(Book& book) : void
+  + getBook() : Book
+}
+
+User "1" *-- "60" BorrowRecord : 组合
+BorrowRecord "1" o-- "1" Book : 聚集
+User ..> Book : <<use>> 借书/还书（参数传引用）
+
+note right of User::borrowBook
+  依赖关系：参数是 Book 的对象引用，
+  必须传地址，函数内修改会作用到原对象
+end note
+@enduml
