@@ -1,20 +1,11 @@
-// LibrarySys.cpp : 此文件包含 "main" 函数，程序执行将在此处开始并结束。
-//
-// 图书馆借阅管理系统 —— 主程序
-// 实验一：Book 类（类与对象）；实验二：User 类与 Book 类的依赖关系
-// 本文件特色：使用 STL 容器 vector<Book> 管理书库，对比 User 中的定长数组 m_records[60]
-
-#include <windows.h>   //SetConsoleOutputCP，用于把控制台输出代码页改成 UTF-8
+#include <windows.h>
 #include <iostream>
-#include <vector>      //STL 顺序容器
+#include <vector>      
 #include <string>
-#include <cstdlib>     //atof
+#include <cstdlib>     
 #include "Book.h"
 #include "User.h"
 using namespace std;
-
-//安全读入一个整数：输入非法时提示并返回 -1
-//不能返回 0，因为 0 是菜单里的"退出"
 int readInt(string tip)
 {
 	int value = 0;
@@ -30,7 +21,7 @@ int readInt(string tip)
 	return value;
 }
 
-//安全读入一个实数（价格可能是 55.5 这种小数）
+
 double readDouble(string tip)
 {
 	string line;
@@ -43,8 +34,6 @@ double readDouble(string tip)
 	return atof(line.c_str());
 }
 
-//按书名在容器中查找，返回下标；找不到返回 -1
-//用到的 STL 成员函数：size() 取元素个数、operator[] 下标访问
 int findBook(vector<Book>& books, const string& title)
 {
 	for (int i = 0; i < (int)books.size(); i++)
@@ -57,7 +46,6 @@ int findBook(vector<Book>& books, const string& title)
 	return -1;
 }
 
-//显示全部图书：用 empty() 判空
 void showAllBooks(vector<Book>& books)
 {
 	if (books.empty())
@@ -74,7 +62,6 @@ void showAllBooks(vector<Book>& books)
 	}
 }
 
-//录入新书：用 push_back 把新对象追加到容器末尾（自动扩容）
 void addBook(vector<Book>& books)
 {
 	string title, author, publisher, ISBN, id;
@@ -97,11 +84,11 @@ void addBook(vector<Book>& books)
 	getline(cin, id);
 	price = readDouble("请输入价格: ");
 	Book b(title, author, publisher, ISBN, id, price, false);
-	books.push_back(b);              //追加元素
+	books.push_back(b);              
 	cout << "录入成功，当前藏书 " << books.size() << " 本。" << endl;
 }
 
-//借书：把书库里那本书的引用交给 User（依赖关系的实际运用）
+//借书：把书库里那本书的引用交给 User
 void borrowBook(vector<Book>& books, User& user)
 {
 	if (user.getBorrownum() >= user.getMaxnum())
@@ -118,7 +105,7 @@ void borrowBook(vector<Book>& books, User& user)
 		cout << "书库中没有这本书。" << endl;
 		return;
 	}
-	user.borrowBook(books[idx]);      //传引用：书的状态改变会写回容器
+	user.borrowBook(books[idx]);      //书的状态改变会写回容器
 }
 
 //还书
@@ -151,16 +138,15 @@ void showMenu()
 
 int main()
 {
-	//源文件是 UTF-8，而控制台默认代码页是 GBK(936)，中文会变乱码
 	SetConsoleOutputCP(65001);
 
-	//书库：用 STL 容器 vector 存放，容量可自动扩充
+	//书库
 	vector<Book> books;
 	books.push_back(Book("C++ Primer", "Stanley Lippman", "电子工业出版社", "9787121358579", "B001", 128.0, false));
 	books.push_back(Book("Effective C++", "Scott Meyers", "电子工业出版社", "9787121155887", "B002", 89.0, false));
 	books.push_back(Book("算法导论", "Thomas H. Cormen", "机械工业出版社", "9787111407010", "B003", 128.0, false));
 
-	//借阅人（实验二：依赖关系的发起者）
+	//借阅人
 	User user("张三", "20240001", 0, 3);
 
 	cout << "欢迎使用图书馆借阅管理系统" << endl;
@@ -202,6 +188,3 @@ int main()
 	}
 	return 0;
 }
-
-// 运行程序: Ctrl + F5 或调试 >"开始执行(不调试)"菜单
-// 调试程序: F5 或调试 >"开始调试"菜单
