@@ -363,3 +363,9 @@ MigrationBackup/
 FodyWeavers.xsd
 # 本地归档（不属于项目源码，仅本机保留）
 归档_带菜单版本/
+
+# VS 工程文件（本作业只提交源码，工程文件保留在本地）
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
