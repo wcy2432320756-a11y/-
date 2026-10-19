@@ -1,114 +1,101 @@
-﻿#include "Book.h"
+#include "Book.h"
 #include <iostream>
-using namespace std;
 
-//默认构造函数
-Book::Book()
+using std::cout;
+using std::endl;
+
+Book::Book()  // 实验一：默认构造
+    : Resource(), m_pages(0)
 {
-	m_title = "";
-	m_author = "";
-	m_publisher = "";
-	m_ISBN = "";
-	m_id = "";
-	m_price = 0;
-	m_isBorrowed = false;
 }
 
-//带参构造函数
-Book::Book(string title, string author, string publisher, string ISBN, string id, double price, bool isBorrowed)
+Book::Book(std::string id, std::string title, std::string author, std::string publisher,
+           std::string ISBN, double price, int pages, int count, int total) // 实验一：重载构造
+    : Resource(id, title, publisher, price, count, total),
+      m_author(author), m_ISBN(ISBN), m_pages(pages)
 {
-	m_title = title;
-	m_author = author;
-	m_publisher = publisher;
-	m_ISBN = ISBN;
-	m_id = id;
-	m_price = price;
-	m_isBorrowed = false;
+    if (!checkISBN(m_ISBN))  // 实验一：对数据成员进行合法性验证
+        m_ISBN.clear();
+    if (m_pages < 0)
+        m_pages = 0;
 }
 
-//获取
-string Book::getTitle()
+std::string Book::getAuthor() const { return m_author; }  // 实验一：基本操作 —— 获取
+std::string Book::getISBN() const   { return m_ISBN; }
+int         Book::getPages() const  { return m_pages; }
+
+void Book::setAuthor(std::string author)  // 实验一：基本操作 —— 修改
 {
-	return m_title;
+    if (!author.empty())
+        m_author = author;
 }
 
-string Book::getAuthor()
+bool Book::setISBN(const std::string& isbn)  // 实验一：改 isbn 同样要验证，不合法就拒绝
 {
-	return m_author;
+    if (!checkISBN(isbn))
+        return false;
+    m_ISBN = isbn;
+    return true;
 }
 
-string Book::getPublisher()
+void Book::setPages(int pages)
 {
-	return m_publisher;
+    if (pages >= 0)
+        m_pages = pages;
 }
 
-string Book::getISBN()
+bool Book::checkISBN(const std::string& isbn)  // 实验一：其他操作 —— 验证 isbn 号的合法性
 {
-	return m_ISBN;
+    std::string s;
+    for (std::size_t i = 0; i < isbn.size(); ++i)  // 先去掉连字符和空格
+    {
+        char c = isbn[i];
+        if (c == '-' || c == ' ')
+            continue;
+        s += c;
+    }
+    if (s.size() == 10)  // ISBN-10：权 10~1 加权求和，能被 11 整除
+    {
+        int sum = 0;
+        for (int i = 0; i < 10; ++i)
+        {
+            char c = s[static_cast<std::size_t>(i)];
+            int value = 0;
+            if (c >= '0' && c <= '9')
+                value = c - '0';
+            else if ((c == 'X' || c == 'x') && i == 9)  // 末位允许 X 表示 10
+                value = 10;
+            else
+                return false;
+            sum += value * (10 - i);
+        }
+        return (sum % 11 == 0);
+    }
+    if (s.size() == 13)  // ISBN-13：权 1、3 交替求和，能被 10 整除
+    {
+        int sum = 0;
+        for (int i = 0; i < 13; ++i)
+        {
+            char c = s[static_cast<std::size_t>(i)];
+            if (c < '0' || c > '9')
+                return false;
+            int value = c - '0';
+            sum += (i % 2 == 0) ? value : value * 3;
+        }
+        return (sum % 10 == 0);
+    }
+    return false;  // 既不是 10 位也不是 13 位
 }
 
-string Book::getId()
+void Book::display() const  // 实验三：根据资源类型不同显示的信息也不一样 —— 图书多出作者、ISBN、页数
 {
-	return m_id;
+    displayCommon();
+    cout << "  作者    : " << m_author << endl;
+    cout << "  ISBN    : " << (m_ISBN.empty() ? "（未通过校验）" : m_ISBN) << endl;
+    cout << "  页数    : " << m_pages << " 页" << endl;
 }
 
-double Book::getPrice()
+std::string Book::getTypeName() const  // 实验三：类型名用于区分三种资源
 {
-	return m_price;
-}
-
-bool Book::getIsBorrowed()
-{
-	return m_isBorrowed;
-}
-
-//修改 设置
-void Book::setTitle(string title)
-{
-	m_title = title;
-}
-
-void Book::setAuthor(string author)
-{
-	m_author = author;
-}
-
-void Book::setPublisher(string publisher)
-{
-	m_publisher = publisher;
-}
-
-void Book::setISBN(string ISBN)
-{
-	m_ISBN = ISBN;
-}
-
-void Book::setId(string id)
-{
-	m_id = id;
-}
-
-void Book::setPrice(double price)
-{
-	m_price = price;
-}
-
-void Book::setIsBorrowed(bool isBorrowed)
-{
-	m_isBorrowed = isBorrowed;
-}
-
-//展示
-void Book::display()
-{
-	cout << "Title: " << m_title << endl;
-	cout << "Author: " << m_author << endl;
-	cout << "Publisher: " << m_publisher << endl;
-	cout << "ISBN: " << m_ISBN << endl;
-	cout << "ID: " << m_id << endl;
-	cout << "Price: " << m_price << endl;
-	if (m_isBorrowed)
-	{
-		//（视频中未完成：此处可输出"已借出"状态）
-	}
+    return "一般图书";
 }

@@ -1,37 +1,114 @@
 @startuml
-' 图书馆借阅管理系统 —— 实验一（类与对象）+ 实验二（依赖关系）
-' 内容严格对应 Book.h/Book.cpp、User.h/User.cpp 的真实成员与方法
+' 图书资源借阅管理系统 —— 实验一 ~ 实验四 类图
+' 实验一 类与对象 / 实验二 组合与依赖 / 实验三 继承与派生 / 实验四 多态与虚函数
+' 内容严格对应 Resource.h、Book.h、Magazine.h、EResource.h、Library.h、User.h
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
 skinparam nodesep 45
 skinparam ranksep 55
 
-class Book {
-  - m_title : string
-  - m_author : string
-  - m_publisher : string
-  - m_ISBN : string
+' ===== 实验四：抽象类（含纯虚函数，不能实例化）=====
+abstract class Resource {
   - m_id : string
+  - m_title : string
+  - m_publisher : string
   - m_price : double
-  - m_isBorrowed : bool
+  - m_count : int
+  - m_total : int
+  __
+  + Resource()
+  + Resource(id, title, publisher, price, count, total)
+  + ~Resource() «virtual»
+  + getId() : string
+  + getTitle() : string
+  + getPublisher() : string
+  + getPrice() : double
+  + getCount() : int
+  + getTotal() : int
+  + isAvailable() : bool
+  + setTitle(title) : void
+  + setPublisher(publisher) : void
+  + setPrice(price) : bool
+  + setTotal(total) : bool
+  + addCopies(n) : bool
+  + reduceCopies(n) : bool
+  + borrowOne() : bool
+  + returnOne() : bool
+  + {abstract} display() : void
+  + {abstract} getTypeName() : string
+  # displayCommon() : void
+}
+
+' ===== 实验三 / 四：三个派生类，各自实现两个纯虚函数 =====
+class Book {
+  - m_author : string
+  - m_ISBN : string
+  - m_pages : int
   __
   + Book()
-  + Book(title, author, publisher, ISBN, id, price, isBorrowed)
-  + getTitle() : string
+  + Book(id, title, author, publisher, ISBN, price, pages, count, total)
   + getAuthor() : string
-  + getPublisher() : string
   + getISBN() : string
-  + getId() : string
-  + getPrice() : double
-  + getIsBorrowed() : bool
-  + setTitle(title) : void
+  + getPages() : int
   + setAuthor(author) : void
-  + setPublisher(publisher) : void
-  + setISBN(ISBN) : void
-  + setId(id) : void
-  + setPrice(price) : void
-  + setIsBorrowed(isBorrowed) : void
+  + setISBN(ISBN) : bool
+  + setPages(pages) : void
+  + {static} checkISBN(ISBN) : bool
   + display() : void
+  + getTypeName() : string
+}
+
+class Magazine {
+  - m_issue : string
+  - m_month : int
+  __
+  + Magazine()
+  + Magazine(id, title, publisher, price, issue, month, count, total)
+  + getIssue() : string
+  + getMonth() : int
+  + setIssue(issue) : void
+  + setMonth(month) : bool
+  + display() : void
+  + getTypeName() : string
+}
+
+class EResource {
+  - m_url : string
+  - m_format : string
+  - m_sizeMB : double
+  __
+  + EResource()
+  + EResource(id, title, provider, price, url, format, sizeMB, count, total)
+  + getUrl() : string
+  + getFormat() : string
+  + getSizeMB() : double
+  + setUrl(url) : void
+  + setFormat(format) : bool
+  + setSizeMB(sizeMB) : bool
+  + display() : void
+  + getTypeName() : string
+}
+
+' ===== 实验二：组合类（整体）=====
+class Library {
+  - m_name : string
+  - m_resources : vector<Resource*>
+  __
+  + Library(name)
+  + ~Library()
+  + getName() : string
+  + size() : int
+  + addResource(r : Resource*) : bool
+  + removeResource(id) : bool
+  + findById(id) : Resource*
+  + showAll() : void
+}
+
+' ===== 实验二：依赖类（使用资源）=====
+struct BorrowRecord {
+  + m_resource : Resource*
+  + set(r : Resource*) : void
+  + getResource() : Resource*
 }
 
 class User {
@@ -42,34 +119,60 @@ class User {
   - m_records[60] : BorrowRecord
   __
   + User()
-  + User(name, id, borrownum, maxnum)
+  + User(name, id, maxnum)
   + getName() : string
   + getId() : string
   + getBorrownum() : int
   + getMaxnum() : int
   + setName(name) : void
   + setId(id) : void
-  + setBorrownum(borrownum) : void
-  + setMaxnum(maxnum) : void
-  + borrowBook(Book& book) : void
-  + returnBook(Book& book) : void
-  + displayRecords() : void
+  + setMaxnum(maxnum) : bool
+  + borrowResource(r : Resource*) : bool
+  + returnResource(r : Resource*) : bool
+  + hasBorrowed(r : Resource*) : bool
   + display() : void
+  + displayRecords() : void
 }
 
-struct BorrowRecord {
-  + m_book : Book
-  __
-  + setBook(Book& book) : void
-  + getBook() : Book
-}
+' ===== 关系 =====
+' 继承（泛化）：箭头指向基类，派生类必须实现全部纯虚函数才能实例化
+Resource <|-- Book : 继承
+Resource <|-- Magazine : 继承
+Resource <|-- EResource : 继承
 
+' 实验二：组合，实心菱形在整体一端
+Library "1" *-- "n" Resource : 组合（馆藏）
+
+' 实验二：组合，一个学生包含多条借阅记录
 User "1" *-- "60" BorrowRecord : 组合
-BorrowRecord "1" o-- "1" Book : 聚集
-User ..> Book : <<use>> 借书/还书（参数传引用）
 
-note right of User::borrowBook
-  依赖关系：参数是 Book 的对象引用，
-  必须传地址，函数内修改会作用到原对象
+' 实验二：依赖，虚线箭头指向被使用者
+User ..> Resource : <<use>>
+BorrowRecord "0..*" o--> "1" Resource : 指向
+
+note right of Resource
+  display / getTypeName 是纯虚函数（= 0），
+  所以 Resource 是抽象类，不能定义对象：
+      Resource r;        ' 编译错误 C2259
+  只能通过 Resource* 或 Resource& 指向派生类对象，
+  由对象实际类型决定调用哪个版本（动态绑定）。
+end note
+
+note right of User
+  实验二依赖关系：borrowResource / returnResource
+  的参数是 Resource*，传地址而不是传值，
+  函数里改的是图书馆里那一个对象的状态。
+end note
+
+note bottom of BorrowRecord
+  记录里存 Resource* 而不是对象副本：
+  借书后图书馆里那本书的数量要变，必须指向同一个对象；
+  delete 时靠虚析构才会调用派生类析构函数。
+end note
+
+note bottom of Library
+  析构函数里 delete 每个 Resource*，
+  vector 里只存基类指针，
+  一个容器就能同时装三种子类对象。
 end note
 @enduml

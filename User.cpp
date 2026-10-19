@@ -1,121 +1,118 @@
-﻿#include "User.h"
+#include "User.h"
 #include <iostream>
-using namespace std;
 
-//默认构造函数
-User::User()
+using std::cout;
+using std::endl;
+
+User::User()  // 实验一：默认构造
+    : m_borrownum(0), m_maxnum(5)
 {
-	m_name = "";
-	m_id = "";
-	m_borrownum = 0;
-	m_maxnum = 0;
 }
 
-//带参构造函数
-User::User(string name, string id, int borrownum, int maxnum)
+User::User(std::string name, std::string id, int maxnum)  // 实验一：重载构造
+    : m_name(name), m_id(id), m_borrownum(0), m_maxnum(maxnum)
 {
-	m_name = name;
-	m_id = id;
-	m_borrownum = borrownum;
-	m_maxnum = maxnum;
+    if (m_maxnum < 1)  // 实验一：合法性验证
+        m_maxnum = 1;
 }
 
-//获取
-string User::getName()
+std::string User::getName() const      { return m_name; }  // 实验一：基本操作 —— 获取
+std::string User::getId() const        { return m_id; }
+int         User::getBorrownum() const { return m_borrownum; }
+int         User::getMaxnum() const    { return m_maxnum; }
+
+void User::setName(std::string name)  // 实验一：基本操作 —— 修改
 {
-	return m_name;
+    if (!name.empty())
+        m_name = name;
 }
 
-string User::getId()
+void User::setId(std::string id)
 {
-	return m_id;
+    if (!id.empty())
+        m_id = id;
 }
 
-int User::getBorrownum()
+bool User::setMaxnum(int maxnum)
 {
-	return m_borrownum;
+    if (maxnum < m_borrownum)
+        return false;
+    m_maxnum = maxnum;
+    return true;
 }
 
-int User::getMaxnum()
+bool User::borrowResource(Resource* r)  // 实验二：学生借书 —— 依赖关系，参数传地址
 {
-	return m_maxnum;
+    if (r == nullptr)
+        return false;
+    if (m_borrownum >= m_maxnum)  // 学生这边：借书数量已达上限
+        return false;
+    if (hasBorrowed(r))  // 学生这边：同一本不能重复借
+        return false;
+    if (!r->isAvailable())  // 书这边：还有没有可借的数量
+        return false;
+
+    if (!r->borrowOne())  // 书的状态改变：可借数量减一
+        return false;
+
+    m_records[m_borrownum].set(r);  // 学生的状态改变：记录里添一条
+    ++m_borrownum;
+    return true;
 }
 
-//修改 设置
-void User::setName(string name)
+bool User::returnResource(Resource* r)  // 实验三：学生归还图书或资源
 {
-	m_name = name;
+    if (r == nullptr)
+        return false;
+
+    for (int i = 0; i < m_borrownum; ++i)
+    {
+        if (m_records[i].m_resource != r)  // 只能还自己借过的那本，防止借 A 还 B
+            continue;
+
+        r->returnOne();  // 书的状态改回可借：可借数量加一
+
+        for (int j = i; j < m_borrownum - 1; ++j)  // 记录槽左移，把洞填掉
+            m_records[j] = m_records[j + 1];
+
+        m_records[m_borrownum - 1].m_resource = nullptr;
+        --m_borrownum;
+        return true;
+    }
+    return false;
 }
 
-void User::setId(string id)
+bool User::hasBorrowed(const Resource* r) const  // 实验二：判断学生和书的状态时要用
 {
-	m_id = id;
+    for (int i = 0; i < m_borrownum; ++i)
+    {
+        if (m_records[i].m_resource == r)
+            return true;
+    }
+    return false;
 }
 
-void User::setBorrownum(int borrownum)
+void User::display() const  // 实验一：基本操作 —— 输出
 {
-	m_borrownum = borrownum;
+    cout << "  姓名    : " << m_name << endl;
+    cout << "  学号    : " << m_id << endl;
+    cout << "  已借/限额: " << m_borrownum << " / " << m_maxnum << endl;
 }
 
-void User::setMaxnum(int maxnum)
+void User::displayRecords() const  // 实验二：学生借了的书的相关信息
 {
-	m_maxnum = maxnum;
-}
+    cout << "========== " << m_name << " 的借阅记录（共 "
+         << m_borrownum << " 条） ==========" << endl;
+    if (m_borrownum == 0)
+    {
+        cout << "  （还没有借过任何资源）" << endl;
+        return;
+    }
+    for (int i = 0; i < m_borrownum; ++i)
+    {
+        const Resource* r = m_records[i].m_resource;
 
-//展示个人信息
-void User::display()
-{
-	cout << "姓名: " << m_name << endl;
-	cout << "学号: " << m_id << endl;
-	cout << "已借数量: " << m_borrownum << " 本（最多可借 " << m_maxnum << " 本）" << endl;
-}
-
-//借书（依赖关系：参数传引用，图书状态会改变）—— 第二视频逐帧确认
-void User::borrowBook(Book& book)
-{
-	if (m_borrownum < m_maxnum)
-	{
-		if (book.getIsBorrowed())
-		{
-			cout << "This book is borrowed." << endl;
-			return;
-		}
-		else
-		{
-			m_records[m_borrownum].setBook(book);
-			m_borrownum++;
-			book.setIsBorrowed(true);
-		}
-	}
-	else
-	{
-		cout << "You have borrowed too many books." << endl;
-	}
-}
-
-//还书（依赖关系：参数传引用，图书状态恢复）—— 视频未展示，按依赖关系逻辑补齐
-void User::returnBook(Book& book)
-{
-	if (m_borrownum <= 0)
-	{
-		cout << "当前没有借书记录，无法还书。" << endl;
-		return;
-	}
-	book.setIsBorrowed(false);
-	m_borrownum--;
-	cout << "还书成功：" << book.getTitle() << endl;
-}
-
-//显示借阅记录—— 视频未展示，按记录数组补齐
-void User::displayRecords()
-{
-	if (m_borrownum == 0)
-	{
-		cout << "暂无借阅记录。" << endl;
-		return;
-	}
-	for (int i = 0; i < m_borrownum; i++)
-	{
-		cout << "第 " << (i + 1) << " 本: " << m_records[i].getBook().getTitle() << endl;
-	}
+        cout << "  " << (i + 1) << ". [" << r->getTypeName() << "] "
+             << r->getTitle() << "（编号 " << r->getId() << "）" << endl;
+    }
 }
