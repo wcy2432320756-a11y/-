@@ -7,11 +7,11 @@
       <FileName>Book.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="User" Collapsed="true">
+  <Class Name="Student" Collapsed="true">
     <Position X="3.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>EggBCAAAAAAAAAAAACAAAAAAgAGAgAVIAAAEABAAAAI=</HashCode>
-      <FileName>User.h</FileName>
+      <FileName>Student.h</FileName>
     </TypeIdentifier>
   </Class>
   <Font Name="Microsoft YaHei UI" Size="9" />

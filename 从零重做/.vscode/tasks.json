@@ -1,0 +1,26 @@
+﻿{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "编译并运行当前课（Ctrl+Shift+B）",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}\\run.ps1",
+                "${fileBasenameNoExtension}"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

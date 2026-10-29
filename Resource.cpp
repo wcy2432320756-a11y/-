@@ -1,57 +1,55 @@
 #include "Resource.h"
+#include <cmath>
 #include <iostream>
+#include <limits>
 
-using std::cout;
-using std::endl;
+using namespace std;
 
-Resource::Resource()  // 实验一：默认构造，成员初始化为一定的值
-    : m_price(0.0), m_count(0), m_total(0)
-{
-}
+Resource::Resource() = default;
 
-Resource::Resource(std::string id, std::string title, std::string publisher,
-                   double price, int count, int total)  // 实验一：重载构造 + 数据成员的合法性验证
+Resource::Resource(string id, string title, string publisher,
+                   double price, int total)
     : m_id(id), m_title(title), m_publisher(publisher),
-      m_price(price), m_count(count), m_total(total)
-{
-    if (m_price < 0.0)  // 价格不能为负
-        m_price = 0.0;
-    if (m_count < 0)  // 可借数量不能为负
-        m_count = 0;
-    if (m_total < m_count)  // 馆藏总数不能小于可借数量
-        m_total = m_count;
-}
-
-Resource::~Resource()  // 实验四：虚析构，delete 基类指针时派生类析构也会执行
+      m_price(price), m_left(total), m_total(total)
 {
 }
 
-std::string Resource::getId() const        { return m_id; }  // 实验一：基本操作 —— 获取
-std::string Resource::getTitle() const     { return m_title; }
-std::string Resource::getPublisher() const { return m_publisher; }
-double      Resource::getPrice() const     { return m_price; }
-int         Resource::getCount() const     { return m_count; }
-int         Resource::getTotal() const     { return m_total; }
-
-bool Resource::isAvailable() const  // 实验二：书的状态 —— 还有可借数量就可借
+bool Resource::valid() const
 {
-    return m_count > 0;
+    if (m_id.empty() || m_title.empty() || m_publisher.empty())
+        return false;
+    if (!isfinite(m_price) || m_price < 0.0)
+        return false;
+    return m_left >= 0 && m_left <= m_total;
 }
 
-void Resource::setTitle(std::string title)  // 实验一：基本操作 —— 修改
+string Resource::getId() const { return m_id; }
+string Resource::getTitle() const { return m_title; }
+string Resource::getPublisher() const { return m_publisher; }
+double Resource::getPrice() const { return m_price; }
+int Resource::getLeft() const { return m_left; }
+int Resource::getTotal() const { return m_total; }
+bool Resource::isAvailable() const { return m_left > 0; }
+
+bool Resource::setTitle(string title)
 {
-    if (!title.empty())
-        m_title = title;
+    if (title.empty())
+        return false;
+    m_title = title;
+    return true;
 }
 
-void Resource::setPublisher(std::string publisher)
+bool Resource::setPublisher(string publisher)
 {
+    if (publisher.empty())
+        return false;
     m_publisher = publisher;
+    return true;
 }
 
 bool Resource::setPrice(double price)
 {
-    if (price < 0.0)
+    if (!isfinite(price) || price < 0.0)
         return false;
     m_price = price;
     return true;
@@ -59,54 +57,55 @@ bool Resource::setPrice(double price)
 
 bool Resource::setTotal(int total)
 {
-    int borrowed = m_total - m_count;
+    int borrowed = m_total - m_left;
     if (total < 0 || total < borrowed)
         return false;
     m_total = total;
-    m_count = total - borrowed;
+    m_left = total - borrowed;
     return true;
 }
 
-bool Resource::addCopies(int n)  // 实验三：增加已有图书或资源的数量
+bool Resource::addCopies(int count)
 {
-    if (n <= 0)
+    if (!valid() || count <= 0 || count > numeric_limits<int>::max() - m_total)
         return false;
-    m_total += n;
-    m_count += n;
+    m_total += count;
+    m_left += count;
     return true;
 }
 
-bool Resource::reduceCopies(int n)  // 实验三：减少已有图书或资源的数量（只减没借出去的）
+bool Resource::reduceCopies(int count)
 {
-    if (n <= 0 || n > m_count)
+    if (!valid() || count <= 0 || count > m_left)
         return false;
-    m_total -= n;
-    m_count -= n;
+    m_total -= count;
+    m_left -= count;
     return true;
 }
 
-bool Resource::borrowOne()  // 实验二：借阅成功时书的状态改变 —— 可借数量减一
+bool Resource::borrowOne()
 {
-    if (m_count <= 0)
+    if (!valid() || !isAvailable())
         return false;
-    --m_count;
+    --m_left;
     return true;
 }
 
-bool Resource::returnOne()  // 实验二：归还时书的状态改回可借 —— 可借数量加一
+bool Resource::returnOne()
 {
-    if (m_count >= m_total)
+    if (!valid() || m_left >= m_total)
         return false;
-    ++m_count;
+    ++m_left;
     return true;
 }
 
-void Resource::displayCommon() const  // 实验三：三种资源共有的信息，派生类 display() 先调这里
+void Resource::showCommon() const
 {
-    cout << "  编号    : " << m_id << "    类型: " << getTypeName() << endl;
-    cout << "  名称    : " << m_title << endl;
-    cout << "  出版/来源: " << m_publisher << endl;
-    cout << "  价格    : " << m_price << " 元" << endl;
-    cout << "  可借/馆藏: " << m_count << " / " << m_total
-         << (m_count > 0 ? "   （可借）" : "   （已全部借出）") << endl;
+    cout << "  编号    : " << (m_id.empty() ? "（未编号）" : m_id)
+         << "    类型: " << getType() << '\n'
+         << "  名称    : " << m_title << '\n'
+         << "  出版/来源: " << m_publisher << '\n'
+         << "  价格    : " << m_price << " 元\n"
+         << "  可借/馆藏: " << m_left << " / " << m_total
+         << (isAvailable() ? "   （可借）" : "   （暂无可借份数）") << '\n';
 }
